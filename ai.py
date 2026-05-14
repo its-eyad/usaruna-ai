@@ -34,12 +34,40 @@ API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def query_hf_api(messages, params):
-    payload = {
-        "model": "Qwen/Qwen2.5-7B-Instruct",
-        "messages": messages,
-        "max_tokens": params.get("max_new_tokens", 150),
-        "temperature": params.get("temperature", 0.5),
-    }
+    try:
+        # تأكد من أن التوكن موجود فعلاً
+        if not HF_TOKEN:
+            return "Error: HF_TOKEN is missing in Render environment variables!"
+
+        payload = {
+            "model": "Qwen/Qwen2.5-7B-Instruct",
+            "messages": messages,
+            "max_tokens": params.get("max_new_tokens", 150),
+            "temperature": params.get("temperature", 0.5),
+        }
+        
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
+        
+        # إذا كان الرد ليس 200 (يعني فيه مشكلة)
+        if response.status_code != 200:
+            print(f"API Error Content: {response.text}") # بيطلع لك السبب الحقيقي في اللوقز
+            return f"AI Server Error: {response.status_code}. Please check logs."
+
+        result = response.json()
+        
+        # التأكد من وجود البيانات المتوقعة قبل القراءة
+        if 'choices' in result:
+            return result['choices'][0]['message']['content']
+        else:
+            print(f"Unexpected JSON structure: {result}")
+            return "Error: Unexpected AI response format."
+
+    except requests.exceptions.JSONDecodeError:
+        print(f"Failed to decode JSON. Response text was: {response.text}")
+        return "AI busy or loading. Please try again in a few seconds."
+    except Exception as e:
+        print(f"General Error: {str(e)}")
+        return f"System Error: {str(e)}"
     response = requests.post(API_URL, headers=headers, json=payload)
     result = response.json()
     return result['choices'][0]['message']['content']
