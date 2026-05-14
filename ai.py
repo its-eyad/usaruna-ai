@@ -13,7 +13,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",    # رابط Vite المحلي
         "http://127.0.0.1:5173",
-        "https://usruna-ai.onrender.com" # رابط السيرفر نفسه
+        "https://usaruna-ai.onrender.com" # رابط السيرفر نفسه
     ],
     allow_credentials=True,
     allow_methods=["*"],           # يسمح بـ POST, GET, OPTIONS, إلخ
