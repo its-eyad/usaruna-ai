@@ -105,6 +105,10 @@ def generate_reply(data: ReviewRequest):
 
 # --- Endpoints ---
 
+@app.get("/")
+async def root():
+    return {"status": "success", "message": "Osruna AI is Live!"}
+    
 @app.post("/smart-reply")
 async def smart_reply_endpoint(data: ReviewRequest):
     return {"suggested_reply": generate_reply(data)}
