@@ -30,7 +30,7 @@ app.add_middleware(
 # --- إعدادات Hugging Face API ---
 # نصيحة: حط التوكن في الـ Environment Variables في Render باسم HF_TOKEN
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
+API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def query_hf_api(messages, params):
