@@ -4,9 +4,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
+# أضفنا allow_credentials و حددنا الرابط بشكل أوضح
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",    # رابط Vite المحلي
+        "http://127.0.0.1:5173",
+        "https://osruna-ai.onrender.com" # رابط السيرفر نفسه
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],           # يسمح بـ POST, GET, OPTIONS, إلخ
+    allow_headers=["*"],           # يسمح بكل أنواع الـ Headers
+)
 # تفعيل CORS عشان الفرونت إند (Vite) يقدر يتصل بالسيرفر
 app.add_middleware(
     CORSMiddleware,
