@@ -18,27 +18,24 @@ app.add_middleware(
 # --- إعدادات Hugging Face API ---
 # نصيحة: حط التوكن في الـ Environment Variables في Render باسم HF_TOKEN
 HF_TOKEN = os.getenv("HF_TOKEN")
-API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct" # نستخدم الـ 7B لأنه مجاني وسريع في الـ API
+API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def query_hf_api(messages, params):
     payload = {
         "model": "Qwen/Qwen2.5-7B-Instruct",
         "messages": messages,
-        "parameters": params
+        "max_tokens": params.get("max_new_tokens", 150),
+        "temperature": params.get("temperature", 0.5),
     }
     response = requests.post(API_URL, headers=headers, json=payload)
     result = response.json()
-    
-    # استخراج النص من رد الـ API
-    if isinstance(result, list):
-        return result[0]['generated_text']
     return result['choices'][0]['message']['content']
 
 # --- دالة تلخيص المراجعات ---
 def get_summary(reviews: List[str], user_lang: str = "en"):
     params = {"max_new_tokens": 100, "temperature": 0.2}
-    
+
     if user_lang == "ar":
         lang_instruction = "Always respond in Arabic. Start with 'بشكل عام، يرى العملاء...'"
         start_phrase = "بشكل عام، يرى العملاء"
@@ -56,10 +53,10 @@ def get_summary(reviews: List[str], user_lang: str = "en"):
 # --- دالة تحسين الوصف ---
 def enhance_description(raw_text: str):
     params = {"max_new_tokens": 250, "temperature": 0.5}
-    
+
     messages = [
         {
-            "role": "system", 
+            "role": "system",
             "content": (
                 "You are a professional marketing writer. REFORMAT and ENHANCE the description."
                 "\n1. Same language as input. 2. Warm tone. 3. Bullet points and emojis. 4. No new facts."
@@ -67,23 +64,23 @@ def enhance_description(raw_text: str):
         },
         {"role": "user", "content": f"Enhance this product description:\n\n{raw_text}"}
     ]
-    
+
     return query_hf_api(messages, params).replace("\\n", "\n")
 
 # --- دالة الرد الذكي ---
 class ReviewRequest(BaseModel):
     product_name: str
     product_description: str
-    product_details: str  
+    product_details: str
     customer_name: str
     review_text: str
 
 def generate_reply(data: ReviewRequest):
     params = {"max_new_tokens": 150, "temperature": 0.3}
-    
+
     messages = [
         {
-            "role": "system", 
+            "role": "system",
             "content": (
                 f"You are customer support for 'Osruna'. INFO: Name: {data.product_name}, Desc: {data.product_description}, Details: {data.product_details}."
                 f"\nGreet {data.customer_name}. Respond ONLY in the customer's language. Be short. No follow-up questions."
